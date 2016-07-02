@@ -120,7 +120,7 @@
 					[[modules:composer.compose]] <span class="help hidden"><i class="fa fa-question-circle"></i></span>
 					<span class="toggle-preview hide">[[modules:composer.show_preview]]</span>
 				</div>
-				<textarea class="write" tabindex="5"></textarea>
+				<textarea class="write" tabindex="5" placeholder="{defaultPlaceHolder}"></textarea>
 			</div>
 			<div class="col-md-6 hidden-sm hidden-xs preview-container">
 				<div class="help-text">
