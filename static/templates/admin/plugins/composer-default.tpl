@@ -13,9 +13,7 @@
 	<div class="row">
         <div class="col-sm-2 col-xs-12 settings-header">PlaceHolder</div>
         <div class="col-sm-10 col-xs-12">
-            <label class="mdl-switch mdl-js-switch mdl-js-ripple-effect">
-                <textarea style="width:600px; height:400px;" name="defaultPlaceHolder" />
-            </label>
+            <textarea style="width:600px; height:400px;" name="defaultPlaceHolder" />
         </div>
     </div>
 </form>
