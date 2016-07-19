@@ -66,21 +66,13 @@ define('composer/resize', ['autosize'], function(autosize) {
 		}
 
 		postContainer.percentage = percentage;
-
-		if (config.hasImageUploadPlugin) {
-			postContainer.find('.img-upload-btn').removeClass('hide');
-			postContainer.find('#files.lt-ie9').removeClass('hide');
-		}
-
-		if (config.allowFileUploads) {
-			postContainer.find('.file-upload-btn').removeClass('hide');
-			postContainer.find('#files.lt-ie9').removeClass('hide');
-		}
-
 		postContainer.css('visibility', 'visible');
 
 		// Add some extra space at the bottom of the body so that the user can still scroll to the last post w/ composer open
-		$body.css({ 'margin-bottom': postContainer.outerHeight() });
+		// thanks but don't do it on mobile
+		if (env === 'md' || env === 'lg') {
+			$body.css({ 'margin-bottom': postContainer.outerHeight() });
+		}
 
 		resizeWritePreview(postContainer);
 	}
@@ -148,9 +140,12 @@ define('composer/resize', ['autosize'], function(autosize) {
 					resizeIt(postContainer, newPercentage);
 					postContainer.addClass('maximized');
 				} else {
-					resizeIt(postContainer, (oldPercentage >= 1 - snapMargin || oldPercentage == 0) ? 0.5 : oldPercentage);
+					newPercentage = (oldPercentage >= 1 - snapMargin || oldPercentage == 0) ? 0.5 : oldPercentage;
+					resizeIt(postContainer, newPercentage);
 					postContainer.removeClass('maximized');
 				}
+				
+				resizeSavePosition(newPercentage);
 			}
 		}
 
@@ -225,6 +220,7 @@ define('composer/resize', ['autosize'], function(autosize) {
 			postContainer.find('.title-container').outerHeight(true),
 			postContainer.find('.formatting-bar').outerHeight(true),
 			postContainer.find('.topic-thumb-container').outerHeight(true),
+			postContainer.find('.tag-row').outerHeight(true),
 			$('.taskbar').height() || 50
 		].reduce(function(a, b) {
 			return a + b;

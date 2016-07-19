@@ -2,7 +2,11 @@
 
 /* globals define, utils, config, app */
 
-define('composer/uploads', ['composer/preview', 'csrf', 'translator'], function(preview, csrf, translator) {
+define('composer/uploads', [
+	'composer/preview',
+	'csrf',
+	'translator'
+], function(preview, csrf, translator) {
 	var uploads = {
 		inProgress: {}
 	};
@@ -165,28 +169,32 @@ define('composer/uploads', ['composer/preview', 'csrf', 'translator'], function(
 	function initializePaste(post_uuid) {
 		$(window).off('paste').on('paste', function(event) {
 
-			var items = (event.clipboardData || event.originalEvent.clipboardData || {}).items,
-				fd;
+			var items = (event.clipboardData || event.originalEvent.clipboardData || {}).items;
 
-			if(items && items.length) {
+			[].some.call(items, function(item) {
+				var blob = item.getAsFile();
 
-				var blob = items[0].getAsFile();
-				if(blob) {
-					blob.name = 'upload-' + utils.generateUUID();
-
-					if (window.FormData) {
-						fd = new FormData();
-						fd.append('files[]', blob, blob.name);
-					}
-
-					uploadContentFiles({
-						files: [blob],
-						post_uuid: post_uuid,
-						route: '/api/post/upload',
-						formData: fd
-					});
+				if (!blob) {
+					return false;
 				}
-			}
+
+				blob.name = 'upload-' + utils.generateUUID();
+
+				var fd = null;
+				if (window.FormData) {
+					fd = new FormData();
+					fd.append('files[]', blob, blob.name);
+				}
+
+				uploadContentFiles({
+					files: [blob],
+					post_uuid: post_uuid,
+					route: '/api/post/upload',
+					formData: fd
+				});
+
+				return true;
+			});
 		});
 	}
 

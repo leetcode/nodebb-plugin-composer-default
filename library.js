@@ -56,7 +56,7 @@ plugin.getFormattingOptions = function(callback) {
 	}, function(err, payload) {
 		callback(err, payload ? payload.options : null);
 	});
-}
+};
 
 plugin.build = function(data, callback) {
 	var req = data.req,
@@ -155,6 +155,15 @@ plugin.build = function(data, callback) {
 		}
 
 		function ready() {
+			var action = 'topics.post';
+			if (!!req.query.tid) {
+				action = 'posts.reply';
+			} else if (!!req.query.pid) {
+				action = 'posts.edit';
+			} else {
+				data.isMain = true;
+			}
+
 			callback(null, {
 				req: req,
 				res: res,
@@ -163,19 +172,23 @@ plugin.build = function(data, callback) {
 					pid: parseInt(req.query.pid, 10),
 					tid: parseInt(req.query.tid, 10),
 					cid: parseInt(req.query.cid, 10),
+					action: action,
 					toPid: parseInt(req.query.toPid, 10),
 					discardRoute: discardRoute,
 
 					resizable: false,
+					allowTopicsThumbnail: meta.config.allowTopicsThumbnail && data.isMain,
 
 					topicTitle: data.topicData ? data.topicData.title.replace(/%/g, '&#37;').replace(/,/g, '&#44;') : '',
 					body: body,
+
+					isMain: data.isMain,
 					isTopicOrMain: !!req.query.cid || data.isMain,
 					// minimumTagLength:
 					// maximumTagLength:
 					isTopic: !!req.query.cid,
 					isEditing: isEditing,
-					showHandleInput: meta.config.allowGuestHandles && (req.user.uid === 0 || (isEditing && isGuestPost && (data.isAdmin || data.isMod))),
+					showHandleInput: meta.config.allowGuestHandles && (req.uid === 0 || (isEditing && isGuestPost && (data.isAdmin || data.isMod))),
 					handle: data.postData ? data.postData.handle || '' : undefined,
 					formatting: data.formatting,
 					isAdminOrMod: data.isAdmin || data.isMod,
@@ -184,6 +197,6 @@ plugin.build = function(data, callback) {
 			});
 		}
 	});
-}
+};
 
 module.exports = plugin;

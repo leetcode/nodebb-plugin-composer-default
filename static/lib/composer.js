@@ -150,23 +150,18 @@ define('composer', [
 		return null;
 	};
 
-	composer.addButton = function(iconClass, onClick) {
-		formatting.addButton(iconClass, onClick);
+	composer.addButton = function(iconClass, onClick, title) {
+		formatting.addButton(iconClass, onClick, title);
 	};
 
 	composer.newTopic = function(data) {
-		socket.emit('categories.isModerator', data.cid, function(err, isMod) {
-			if (err) {
-				return app.alertError(err.message);
-			}
-			push({
-				cid: data.cid,
-				title: data.title || '',
-				body: data.body || '',
-				modified: false,
-				isMain: true,
-				isMod: isMod
-			});
+		push({
+			action: 'topics.post',
+			cid: data.cid,
+			title: data.title || '',
+			body: data.body || '',
+			modified: false,
+			isMain: true
 		});
 	};
 
@@ -181,7 +176,7 @@ define('composer', [
 
 		if (uuid === undefined) {
 			if (title && topicSlug && postIndex) {
-				var link = '[' + escapedTitle + '](/topic/' + topicSlug + '/' + (parseInt(postIndex, 10) + 1) + ')';
+				var link = '[' + escapedTitle + '](/post/' + pid + ')';
 				composer.newReply(tid, pid, title, '[[modules:composer.user_said_in, ' + username + ', ' + link + ']]\n' + text);
 			} else {
 				composer.newReply(tid, pid, title, '[[modules:composer.user_said, ' + username + ']]\n' + text);
@@ -211,20 +206,15 @@ define('composer', [
 	};
 
 	composer.newReply = function(tid, pid, title, text) {
-		socket.emit('topics.isModerator', tid, function(err, isMod) {
-			if (err) {
-				return app.alertError(err.message);
-			}
-			translator.translate(text, config.defaultLang, function(translated) {
-				push({
-					tid: tid,
-					toPid: pid,
-					title: title,
-					body: translated,
-					modified: false,
-					isMain: false,
-					isMod: isMod
-				});
+		translator.translate(text, config.defaultLang, function(translated) {
+			push({
+				action: 'posts.reply',
+				tid: tid,
+				toPid: pid,
+				title: title,
+				body: translated,
+				modified: false,
+				isMain: false
 			});
 		});
 	};
@@ -236,6 +226,7 @@ define('composer', [
 			}
 
 			push({
+				action: 'posts.edit',
 				pid: pid,
 				uid: threadData.uid,
 				handle: threadData.handle,
@@ -286,6 +277,24 @@ define('composer', [
 		formatting.addHandler(postContainer);
 		formatting.addComposerButtons();
 		preview.handleToggler(postContainer);
+
+		if (config.hasImageUploadPlugin) {
+			postContainer.find('.img-upload-btn').removeClass('hide');
+			postContainer.find('#files.lt-ie9').removeClass('hide');
+		}
+
+		if (config.allowFileUploads) {
+			postContainer.find('.file-upload-btn').removeClass('hide');
+			postContainer.find('#files.lt-ie9').removeClass('hide');
+		}
+
+		if (config.allowFileUploads || config.hasImageUploadPlugin || config.allowTopicsThumbnail) {
+			uploads.initialize(post_uuid);
+		}
+
+		if (config.allowTopicsThumbnail && postData.isMain) {
+			uploads.toggleThumbEls(postContainer, composer.posts[post_uuid].topic_thumb || '');
+		}
 
 		autocomplete.init(postContainer);
 
@@ -364,7 +373,7 @@ define('composer', [
 		var postData = composer.posts[post_uuid];
 
 		var allowTopicsThumbnail = config.allowTopicsThumbnail && postData.isMain,
-			isTopic = postData ? !!postData.cid : false,
+			isTopic = postData ? postData.hasOwnProperty('cid') : false,
 			isMain = postData ? !!postData.isMain : false,
 			isEditing = postData ? !!postData.pid : false,
 			isGuestPost = postData ? parseInt(postData.uid, 10) === 0 : false;
@@ -440,14 +449,6 @@ define('composer', [
 
 				activate(post_uuid);
 
-				if (config.allowFileUploads || config.hasImageUploadPlugin || config.allowTopicsThumbnail) {
-					uploads.initialize(post_uuid);
-				}
-
-				if (allowTopicsThumbnail) {
-					uploads.toggleThumbEls(postContainer, composer.posts[post_uuid].topic_thumb || '');
-				}
-
 				postContainer.on('click', function() {
 					if (!taskbar.isActive(post_uuid)) {
 						taskbar.updateActive(post_uuid);
@@ -464,6 +465,10 @@ define('composer', [
 
 					submitBtns.removeAttr('tabindex');
 					mobileSubmitBtn.attr('tabindex', parseInt(idx, 10)+1);
+
+					$('.category-name-container').on('click', function() {
+						$('.category-selector').toggleClass('open');
+					});
 				}
 
 				$(window).trigger('action:composer.loaded', {
@@ -514,13 +519,14 @@ define('composer', [
 	}
 
 	function post(post_uuid, options) {
-		var postData = composer.posts[post_uuid],
-			postContainer = $('#cmp-uuid-' + post_uuid),
-			handleEl = postContainer.find('.handle'),
-			titleEl = postContainer.find('.title'),
-			bodyEl = postContainer.find('textarea'),
-			thumbEl = postContainer.find('input#topic-thumb-url'),
-			onComposeRoute = postData.hasOwnProperty('template') && postData.template.compose === true;
+		var postData = composer.posts[post_uuid];
+		var postContainer = $('#cmp-uuid-' + post_uuid);
+		var handleEl = postContainer.find('.handle');
+		var titleEl = postContainer.find('.title');
+		var bodyEl = postContainer.find('textarea');
+		var categoryEl = postContainer.find('.category-list');
+		var thumbEl = postContainer.find('input#topic-thumb-url');
+		var onComposeRoute = postData.hasOwnProperty('template') && postData.template.compose === true;
 
 		options = options || {};
 
@@ -530,7 +536,7 @@ define('composer', [
 			thumbEl.val(thumbEl.val().trim());
 		}
 
-		var checkTitle = (parseInt(postData.cid, 10) || parseInt(postData.pid, 10)) && postContainer.find('input.title').length;
+		var checkTitle = (postData.hasOwnProperty('cid') || parseInt(postData.pid, 10)) && postContainer.find('input.title').length;
 
 		if (uploads.inProgress[post_uuid] && uploads.inProgress[post_uuid].length) {
 			return composerAlert(post_uuid, '[[error:still-uploading]]');
@@ -546,21 +552,20 @@ define('composer', [
 			return composerAlert(post_uuid, '[[error:content-too-long, ' + config.maximumPostLength + ']]');
 		}
 
-		var composerData = {}, action;
+		var composerData = {};
+		var action = postData.action;
 
-		if (parseInt(postData.cid, 10) > 0) {
-			action = 'topics.post';
+		if (action === 'topics.post') {
 			composerData = {
 				handle: handleEl ? handleEl.val() : undefined,
 				title: titleEl.val(),
 				content: bodyEl.val(),
 				topic_thumb: thumbEl.val() || '',
-				category_id: postData.cid,
+				category_id: categoryEl.val(),
 				tags: tags.getTags(post_uuid),
 				lock: options.lock || false
 			};
-		} else if (parseInt(postData.tid, 10) > 0) {
-			action = 'posts.reply';
+		} else if (action === 'posts.reply') {
 			composerData = {
 				tid: postData.tid,
 				handle: handleEl ? handleEl.val() : undefined,
@@ -568,8 +573,7 @@ define('composer', [
 				toPid: postData.toPid,
 				lock: options.lock || false
 			};
-		} else if (parseInt(postData.pid, 10) > 0) {
-			action = 'posts.edit';
+		} else if (action === 'posts.edit') {
 			composerData = {
 				pid: postData.pid,
 				handle: handleEl ? handleEl.val() : undefined,
@@ -598,6 +602,13 @@ define('composer', [
 			} else if (action === 'posts.reply') {
 				if (onComposeRoute || composer.bsEnvironment === 'xs' || composer.bsEnvironment === 'sm') {
 					window.history.back();
+				} else if (ajaxify.data.template.topic) {
+					if (postData.tid !== ajaxify.data.tid) {
+						ajaxify.go('post/' + data.pid);
+					}
+					// else, we're in the same topic, no nav required
+				} else {
+					ajaxify.go('post/' + data.pid);
 				}
 			} else {
 				removeComposerHistory();
