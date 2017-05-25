@@ -114,7 +114,7 @@
 					<span class="help hidden">[[modules:composer.compose]] <i class="fa fa-question-circle"></i></span>
 					<span class="toggle-preview hide">[[modules:composer.show_preview]]</span>
 				</div>
-				<textarea class="write" tabindex="4"></textarea>
+        <textarea id="textarea_input" class="write" tabindex="4" placeholder="{defaultPlaceHolder}"></textarea>
 			</div>
 			<div class="hidden-sm hidden-xs preview-container">
 				<div class="help-text">
