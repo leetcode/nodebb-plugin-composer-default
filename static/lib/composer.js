@@ -395,7 +395,8 @@ define('composer', [
 			isEditing: isEditing,
 			showHandleInput:  config.allowGuestHandles && (app.user.uid === 0 || (isEditing && isGuestPost && app.user.isAdmin)),
 			handle: postData ? postData.handle || '' : undefined,
-			formatting: composer.formatting
+			formatting: composer.formatting,
+			defaultPlaceHolder: config['composer-default'] ? config['composer-default'].defaultPlaceHolder : ''
 		};
 
 		if (data.mobile) {

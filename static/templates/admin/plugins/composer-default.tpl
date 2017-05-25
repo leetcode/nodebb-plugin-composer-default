@@ -12,6 +12,15 @@
 	</div>
 </form>
 
+<form role="form" class="composer-default-settings-placeholder">
+    <div class="row">
+        <div class="col-sm-2 col-xs-12 settings-header">PlaceHolder</div>
+        <div class="col-sm-10 col-xs-12">
+            <textarea style="width:600px; height:400px;" name="defaultPlaceHolder" />
+        </div>
+    </div>
+</form>
+
 <button id="save" class="floating-button mdl-button mdl-js-button mdl-button--fab mdl-js-ripple-effect mdl-button--colored">
 	<i class="material-icons">save</i>
 </button>
