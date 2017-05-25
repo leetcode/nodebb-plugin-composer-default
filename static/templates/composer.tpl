@@ -1,4 +1,4 @@
-<div component="composer" class="composer<!-- IF resizable --> resizable<!-- ENDIF resizable -->">
+<div component="composer" class="composer<!-- IF resizable --> resizable<!-- ENDIF resizable --><!-- IF !isTopicOrMain --> reply<!-- ENDIF !isTopicOrMain -->">
 
 	<div class="composer-container">
 		<nav class="navbar navbar-fixed-top mobile-navbar visible-xs visible-sm">
@@ -13,6 +13,9 @@
 			<div class="pull-right">
 				<button class="btn btn-sm btn-primary composer-submit" data-action="post" tabindex="-1"><i class="fa fa-chevron-right"></i></button>
 			</div>
+			<!-- IF !isTopicOrMain -->
+			<h4 class="title">[[topic:composer.replying_to, "{title}"]]</h4>
+			<!-- ENDIF !isTopicOrMain -->
 		</nav>
 		<div class="row title-container">
 			<!-- IF showHandleInput -->
@@ -42,7 +45,7 @@
 			<!-- ENDIF isTopic -->
 		</div>
 
-		<div class="row category-tag-row">
+		<div class="category-tag-row">
 			<div class="btn-toolbar formatting-bar">
 				<ul class="formatting-group">
 					<!-- BEGIN formatting -->
@@ -106,14 +109,14 @@
 		</div>
 
 		<div class="row write-preview-container">
-			<div class="col-md-6 col-sm-12 write-container">
+			<div class="write-container">
 				<div class="help-text">
-					[[modules:composer.compose]] <span class="help hidden"><i class="fa fa-question-circle"></i></span>
+					<span class="help hidden">[[modules:composer.compose]] <i class="fa fa-question-circle"></i></span>
 					<span class="toggle-preview hide">[[modules:composer.show_preview]]</span>
 				</div>
-				<textarea id="textarea_input" class="write" tabindex="5" placeholder="{defaultPlaceHolder}"></textarea>
+				<textarea id="textarea_input" class="write" tabindex="4" placeholder="{defaultPlaceHolder}"></textarea>
 			</div>
-			<div class="col-md-6 hidden-sm hidden-xs preview-container">
+			<div class="hidden-sm hidden-xs preview-container">
 				<div class="help-text">
 					<span class="toggle-preview">[[modules:composer.hide_preview]]</span>
 				</div>
@@ -122,18 +125,28 @@
 		</div>
 
 		<!-- IF isTopicOrMain -->
-		<div class="row tag-row">
-			<div class="col-md-12">
-				<div class="tags-container inline-block">
-					<input class="tags" type="text" class="form-control" placeholder="[[tags:enter_tags_here, {minimumTagLength}, {maximumTagLength}]]" tabindex="4"/>
+		<div class="tag-row">
+			<div class="tags-container">
+				<div class="btn-group dropup <!-- IF !tagWhitelist.length -->hidden<!-- ENDIF !tagWhitelist.length -->" component="composer/tag/dropdown">
+					<button class="btn btn-default dropdown-toggle" data-toggle="dropdown" type="button">
+						<span class="visible-sm-inline visible-md-inline visible-lg-inline"><i class="fa fa-tags"></i></span>
+						<span class="caret"></span>
+					</button>
+
+					<ul class="dropdown-menu">
+						<!-- BEGIN tagWhitelist -->
+						<li data-tag="@value"><a href="#">@value</a></li>
+						<!-- END tagWhitelist -->
+					</ul>
 				</div>
+				<input class="tags" type="text" class="form-control" placeholder="[[tags:enter_tags_here, {minimumTagLength}, {maximumTagLength}]]" tabindex="5"/>
 			</div>
 		</div>
 		<!-- ENDIF isTopicOrMain -->
-		
+
 		<!-- IF isTopic -->
 		<ul class="category-selector visible-xs visible-sm">
-			
+
 		</ul>
 		<!-- ENDIF isTopic -->
 

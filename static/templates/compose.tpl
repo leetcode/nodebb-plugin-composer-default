@@ -1,4 +1,4 @@
-<div component="composer" class="composer<!-- IF resizable --> resizable<!-- ENDIF resizable -->"<!-- IF !disabled --> style="visibility: inherit;"<!-- ENDIF !disabled -->>
+<div component="composer" class="composer<!-- IF resizable --> resizable<!-- ENDIF resizable --><!-- IF !isTopicOrMain --> reply<!-- ENDIF !isTopicOrMain -->"<!-- IF !disabled --> style="visibility: inherit;"<!-- ENDIF !disabled -->>
 
 	<div class="composer-container">
 		<div class="title-container row">
@@ -29,7 +29,7 @@
 			<!-- ENDIF isTopic -->
 		</div>
 
-		<div class="row category-tag-row">
+		<div class="category-tag-row">
 			<div class="btn-toolbar formatting-bar">
 				<ul class="formatting-group">
 					<!-- BEGIN formatting -->

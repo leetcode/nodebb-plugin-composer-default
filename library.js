@@ -48,10 +48,32 @@ plugin.addAdminNavigation = function(header, callback) {
 	callback(null, header);
 };
 
+plugin.addPrefetchTags = function(tags, callback) {
+	var prefetch = [
+			'/assets/src/modules/composer.js', '/assets/src/modules/composer/uploads.js', '/assets/src/modules/composer/drafts.js',
+			'/assets/src/modules/composer/tags.js', '/assets/src/modules/composer/categoryList.js', '/assets/src/modules/composer/resize.js',
+			'/assets/src/modules/composer/autocomplete.js', '/assets/templates/composer.tpl',
+			'/assets/language/' + (meta.config.defaultLang || 'en-GB') + '/topic.json',
+			'/assets/language/' + (meta.config.defaultLang || 'en-GB') + '/modules.json',
+			'/assets/language/' + (meta.config.defaultLang || 'en-GB') + '/tags.json'
+		];
+
+	tags = tags.concat(prefetch.map(function(path) {
+		path = {
+			rel: 'prefetch',
+			href: nconf.get('relative_path') + path + '?' + meta.config['cache-buster']
+		}
+		return path;
+	}));
+
+	callback(null, tags);
+};
+
 plugin.getFormattingOptions = function(callback) {
 	plugins.fireHook('filter:composer.formatting', {
 		options: [
-			{ name: 'tags', className: 'fa fa-tags', mobile: true }
+			{ name: 'tags', className: 'fa fa-tags', mobile: true },
+			{ name: 'zen', className: 'fa fa-arrows-alt', title: '[[modules:composer.zen_mode]]', mobile: false }
 		]
 	}, function(err, payload) {
 		callback(err, payload ? payload.options : null);
@@ -149,6 +171,9 @@ plugin.build = function(data, callback) {
 					ready();
 				});
 			});
+		} else if (req.query.body) {
+			body = req.query.body;
+			ready();
 		} else {
 			body = data.postData ? data.postData.content : '';
 			ready();
@@ -171,7 +196,7 @@ plugin.build = function(data, callback) {
 					disabled: !req.query.pid && !req.query.tid && !req.query.cid,
 					pid: parseInt(req.query.pid, 10),
 					tid: parseInt(req.query.tid, 10),
-					cid: parseInt(req.query.cid, 10),
+					cid: parseInt(req.query.cid, 10) || (data.topicData ? data.topicData.cid : null),
 					action: action,
 					toPid: parseInt(req.query.toPid, 10),
 					discardRoute: discardRoute,

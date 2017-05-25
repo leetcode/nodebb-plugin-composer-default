@@ -6,13 +6,15 @@
 		{ "hook": "static:app.load", "method": "init" },
 		{ "hook": "filter:config.get", "method": "appendConfig" },
 		{ "hook": "filter:composer.build", "method": "build" },
-		{ "hook": "filter:admin.header.build", "method": "addAdminNavigation" }
+		{ "hook": "filter:admin.header.build", "method": "addAdminNavigation" },
+		{ "hook": "filter:meta.getLinkTags", "method": "addPrefetchTags" }
 	],
 	"less": [
 		"./static/less/composer.less"
 	],
 	"scripts": [
-		"./static/lib/client.js"
+		"./static/lib/client.js",
+		"./node_modules/screenfull/dist/screenfull.js"
 	],
 	"modules": {
 		"composer.js": "./static/lib/composer.js",

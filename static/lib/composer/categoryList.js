@@ -50,6 +50,8 @@ define('composer/categoryList', function() {
 				return a.order - b.order;
 			});
 
+			var selectCategory = $('<option value="0"></option>');
+			selectCategory.translateText('[[modules:composer.select_category]]').appendTo(listEl);
 			categories.forEach(function(category) {
 				recursive(category, listEl, '');
 			});
@@ -59,28 +61,38 @@ define('composer/categoryList', function() {
 			} else if (postData.hasOwnProperty('cid')) {
 				postData.cid = listEl.val();
 			}
-			
-			$('.category-name').text(listEl.find('option[value="' + postData.cid + '"]').text());
+
+			$('.category-name').translateText(listEl.find('option[value="' + postData.cid + '"]').text() || '[[modules:composer.select_category]]');
 			$('.category-selector').find('li[data-cid="' + postData.cid + '"]').addClass('active');
 		});
 
 		listEl.on('change', function() {
 			if (postData.hasOwnProperty('cid')) {
-				postData.cid = this.value;
+				changeCategory(postContainer, postData, $(this).val());
 			}
 
 			$('[tabindex=' + (parseInt($(this).attr('tabindex'), 10) + 1) + ']').trigger('focus');
 		});
-		
+
 		$('.category-selector').on('click', 'li', function() {
 			$('.category-name').text($(this).text());
 			$('.category-selector').removeClass('open');
 			$('.category-selector li').removeClass('active');
 			$(this).addClass('active');
-			$('.category-list').val($(this).attr('data-cid'));
+			var selectedCid = $(this).attr('data-cid');
+			$('.category-list').val(selectedCid);
+			if (postData.hasOwnProperty('cid')) {
+				changeCategory(postContainer, postData, selectedCid);
+			}
 		});
-		
 	};
+
+	function changeCategory(postContainer, postData, cid) {
+		postData.cid = cid;
+		require(['composer/tags'], function (tags) {
+			tags.updateWhitelist(postContainer, cid);
+		});
+	}
 
 	function recursive(category, listEl, level) {
 		if (category.link) {
@@ -88,7 +100,7 @@ define('composer/categoryList', function() {
 		}
 		var bullet = level ? '&bull; ' : '';
 		$('<option value="' + category.cid + '" ' + (category.noPrivilege ? 'disabled' : '') + '>' + level + bullet + category.name + '</option>').appendTo(listEl);
-		
+
 		$('<li data-cid="' + category.cid + '">' + category.name + '</li>').appendTo($('.category-selector'));
 
 		category.children.sort(function(a, b) {

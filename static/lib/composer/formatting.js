@@ -1,8 +1,8 @@
 'use strict';
 
-/* globals define */
+/* globals app, define, screenfull */
 
-define('composer/formatting', ['composer/controls', 'composer/preview'], function(controls, preview) {
+define('composer/formatting', ['composer/controls', 'composer/preview', 'composer/resize'], function(controls, preview, resize) {
 
 	var formatting = {};
 
@@ -17,6 +17,32 @@ define('composer/formatting', ['composer/controls', 'composer/preview'], functio
 
 		tags: function() {
 			$('.tags-container').toggleClass('hidden');
+		},
+
+		zen: function() {
+			var postContainer = this;
+			$(window).one('resize', function() {
+				function onResize() {
+					if (!screenfull.isFullscreen) {
+						app.toggleNavbar(true);
+						$('html').removeClass('zen-mode');
+						resize.reposition(postContainer);
+						$(window).off('resize', onResize);
+					}
+				}
+
+				if (screenfull.isFullscreen) {
+					app.toggleNavbar(false);
+					$('html').addClass('zen-mode');
+					postContainer.find('.write').focus();
+
+					$(window).on('resize', onResize);
+
+					$(window).one('action:composer.topics.post action:composer.posts.reply action:composer.posts.edit action:composer.discard', screenfull.exit);
+				}
+			});
+
+			screenfull.toggle();
 		}
 	};
 
@@ -49,7 +75,7 @@ define('composer/formatting', ['composer/controls', 'composer/preview'], functio
 				textarea = $(this).parents('[component="composer"]').find('textarea')[0];
 
 			if(formattingDispatchTable.hasOwnProperty(format)){
-				formattingDispatchTable[format](textarea, textarea.selectionStart, textarea.selectionEnd);
+				formattingDispatchTable[format].call(postContainer, textarea, textarea.selectionStart, textarea.selectionEnd);
 				preview.render(postContainer);
 			}
 		});

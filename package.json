@@ -1,6 +1,6 @@
 {
   "name": "nodebb-plugin-composer-default",
-  "version": "4.0.5",
+  "version": "4.4.8",
   "description": "Default composer for NodeBB",
   "main": "library.js",
   "repository": {
@@ -23,6 +23,9 @@
   },
   "readmeFilename": "README.md",
   "nbbpm": {
-    "compatibility": "^1.0.0"
+    "compatibility": "^1.4.4"
+  },
+  "dependencies": {
+    "screenfull": "3.0.0"
   }
 }
